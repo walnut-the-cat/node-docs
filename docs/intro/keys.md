@@ -71,7 +71,3 @@ For concrete examples of keys being used as identifiers, you can see a list of v
 - NEAR testnet (staking currently disabled)
   - `https://rpc.testnet.near.org/status`
   - `https://rpc.testnet.near.org/network_info`
-
->Got a question?
-<a href="https://stackoverflow.com/questions/tagged/nearprotocol">
-  <h8>Ask it on StackOverflow!</h8></a>
