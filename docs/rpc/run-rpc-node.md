@@ -260,8 +260,3 @@ Then restart the node. The node loads the memtrie at startup.
 - The node only loads memtries for shards that it tracks. Entries for other shards are ignored.
 - If `load_mem_tries_for_tracked_shards` is `true`, the node loads a memtrie for every tracked shard. The `load_mem_tries_for_shards` list then makes no difference.
 - Shard IDs change when a shard is split. After a resharding, find the current shard IDs in the `shard_layout` field of the `EXPERIMENTAL_protocol_config` RPC method. Then update the list.
-
-
->Got a question?
-<a href="https://stackoverflow.com/questions/tagged/nearprotocol">
-  <h8>Ask it on StackOverflow!</h8></a>
