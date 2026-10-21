@@ -64,8 +64,12 @@ $ git fetch origin --tags
 
 Checkout to the branch you need if not `master` (default). Latest release is recommended. Please check the [releases page on GitHub](https://github.com/near/nearcore/releases).
 
+Testnet usually runs a newer release candidate than mainnet. An older release cannot follow the testnet protocol version. The following commands check out the version that the public testnet RPC node runs. They need `jq`:
+
 ```bash
-$ git checkout tags/1.25.0 -b mynode
+$ NEAR_RELEASE_VERSION=$(curl -s -X POST https://rpc.testnet.near.org -H "Content-Type: application/json" \
+    -d '{"jsonrpc":"2.0","id":"dontcare","method":"status","params":[]}' | jq -r '.result.version.version')
+$ git checkout "tags/${NEAR_RELEASE_VERSION:?}" -b mynode
 ```
 
 ### 2. Compile `nearcore` binary {#2-compile-nearcore-binary}
@@ -147,8 +151,11 @@ Next, checkout the release branch you need (recommended) if you will not be usin
 
 For more information on choosing between `master` and latest release branch [ [click here](/validator/compile-and-run-a-node#choosing-your-nearcore-version) ].
 
+The following commands check out the latest stable release:
+
 ```bash
-$ git checkout tags/1.25.0 -b mynode
+$ NEAR_RELEASE_VERSION=$(curl -s https://api.github.com/repos/near/nearcore/releases/latest | grep '"tag_name"' | cut -d '"' -f 4)
+$ git checkout "tags/${NEAR_RELEASE_VERSION:?}" -b mynode
 ```
 
 ### 2. Compile `nearcore` binary {#2-compile-nearcore-binary-1}
@@ -215,6 +222,44 @@ Running a node in `light` mode allows the operator to access chain level data, n
 ```
 "tracked_shards_config": "NoShards"
 ```
+
+## Using memtrie for busy shards {#memtrie}
+
+A node stores the state of each tracked shard in its database on disk. With memtrie (in-memory trie), the node also keeps the state trie of a shard in RAM. When a node applies a chunk, it reads and updates the state trie of that shard. With a memtrie, the node does this in memory instead of reading trie nodes from disk. So it applies the chunks of that shard faster. RPC view requests, such as `query` calls, do not use memtrie.
+
+Memtrie uses a lot of RAM, and the amount grows with the size of the shard's state. A memtrie also makes the node take longer to start, because the node builds it at startup.
+
+The reference RPC `config.json` keeps memtrie off: `store.load_mem_tries_for_tracked_shards` is `false`. Setting `tracked_shards_config` to `"AllShards"` does not turn memtrie on. Keep `store.load_mem_tries_for_tracked_shards` set to `false` on an RPC node that tracks all shards. If you set it to `true`, the node loads a memtrie for every shard it tracks.
+
+### When to consider memtrie
+
+Consider memtrie for one shard when your RPC node falls behind the chain. This happens when the node cannot apply the chunks of a busy shard fast enough. These are the signs:
+
+- The `latest_block_height` that the `status` method returns on your node is lower than the one from a public RPC node. The gap does not close over time.
+- The time to apply chunks of one shard is much higher than for the other shards.
+
+To compare the time per shard, read the node's metrics:
+
+```bash
+curl -s http://127.0.0.1:3030/metrics | grep -E '^near_applying_chunks_time_(sum|count)\{apply_reason="update_shard"'
+```
+
+For each `shard_id`, divide the `_sum` value by the `_count` value. The result is the average time in seconds to apply one chunk of that shard, since the node started. If `rpc.prometheus_addr` is set in `config.json`, read the metrics from that address instead.
+
+### Enable memtrie for one shard
+
+List the shards that need a memtrie in `store.load_mem_tries_for_shards`. Each entry is a shard UID in the form `s<shard id>.v<shard layout version>`. The shard layout version is `3` on mainnet and testnet. For example, to load a memtrie only for shard 8, set these two fields in the `store` section of `config.json`:
+
+```json
+"load_mem_tries_for_tracked_shards": false,
+"load_mem_tries_for_shards": ["s8.v3"]
+```
+
+Then restart the node. The node loads the memtrie at startup.
+
+- The node only loads memtries for shards that it tracks. Entries for other shards are ignored.
+- If `load_mem_tries_for_tracked_shards` is `true`, the node loads a memtrie for every tracked shard. The `load_mem_tries_for_shards` list then makes no difference.
+- Shard IDs change when a shard is split. After a resharding, find the current shard IDs in the `shard_layout` field of the `EXPERIMENTAL_protocol_config` RPC method. Then update the list.
 
 
 >Got a question?
