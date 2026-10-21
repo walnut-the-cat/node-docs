@@ -234,14 +234,15 @@ systemctl enable neard'
 
 Syncing consists of two main steps:
 
-1. **Syncing headers** – achieved in one of three ways:
-   - **[Epoch Sync](#epoch-sync)**: the recommended, decentralized approach. This solution results in the smallest database size, as the node will only contain compacted block headers.
+1. **Syncing headers**: achieved in one of two ways:
+   - **[Epoch Sync](#epoch-sync)**: the recommended, decentralized approach. This solution results in the smallest database size, as the node will only contain compacted block headers. A node that is more than two epochs behind the network uses epoch sync automatically. No config change is needed.
    - **[Using a snapshot](#sync-data-with-snapshot)**: a centralized solution.
-   - **Fallback**: If neither option is used, the node defaults to Header Sync, which can be extremely slow.
 
-2. **Syncing blocks** – involves downloading the blockchain state at the start of the latest epoch and then processing the remaining blocks to fully sync with the chain. State sync, the process of downloading the state, can be done in two ways:
-   - **Decentralized state sync**: the default method, which pulls data directly from peers.
-   - **[Centralized state sync](#state-sync-from-external-storage)**: uses cloud-based storage as a fallback when configured in `config.json`.
+   Only archival nodes sync all headers and blocks from genesis.
+
+2. **Syncing blocks**: involves downloading the blockchain state at the start of the latest epoch and then processing the remaining blocks to fully sync with the chain. State sync, the process of downloading the state, pulls the data directly from peers. This is the only method, and it needs no configuration.
+
+   If `config.json` sets `state_sync.sync` to `ExternalStorage`, nearcore 2.13.0 and later refuse to start. Remove the `state_sync.sync` block before you start the node.
 
 
 
@@ -249,7 +250,7 @@ Syncing consists of two main steps:
 
 Epoch Sync enables a node to sync from genesis without relying on snapshots.
 Unlike Header Sync, it requires downloading only a small subset of past block headers rather than all of them.
-To sync using Epoch Sync, update the `config.json` file with the latest boot nodes list from the NEAR network and then start the `neard` service, here is the command:
+Epoch sync runs automatically when you start a node with an empty data folder. You can refresh the boot nodes list first, so that the node finds peers. Then start the `neard` service. Here is the command:
 
 ```
 # MainNet 
@@ -327,12 +328,6 @@ journalctl -n 100 -f -u neard | ccze -A
 
 
 Check the running status of the validator node. If you see something like the image above, it means the node is fully synced, and you are ready to become an active validator!
-
-##### State sync from external storage
-
-To configure your node to sync from external storage, follow the [link](https://github.com/near/nearcore/blob/master/docs/misc/state_sync_from_external_storage.md).
-The new state sync bucket is `fast-state-parts` and it is maintained by FastNEAR.
-
 
 ### Becoming an active Validator
 In order to become a validator and enter the validator set to help secure the network and earn rewards, a minimum set of success criteria must be met:
