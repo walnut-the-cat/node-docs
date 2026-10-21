@@ -183,8 +183,3 @@ After the node starts, check its log.  If it keeps logging
 You can start your node without the JSON RPC endpoint by running the
 above command with an additional `--disable-rpc` flag.  This reduces
 resource use and attack vector by closing a listening port.
-
-
->Got a question?
-<a href="https://stackoverflow.com/questions/tagged/nearprotocol">
-  <h8>Ask it on StackOverflow!</h8></a>
