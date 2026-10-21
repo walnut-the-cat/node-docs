@@ -1464,8 +1464,3 @@ Use `tracked_shards_config`, not the deprecated `tracked_shards` key. A `config.
 4. Restart the backup node.
 
 You do not need to copy `node_key.json`. To fail back to the primary node, stop the backup node and remove `validator_key.json` from it. Then start the primary node. The failover/backup node instruction page notes that a node that has run as a validator and tracked a single shard cannot go back to tracking all shards.
-
-
->Got a question?
-<a href="https://stackoverflow.com/questions/tagged/nearprotocol">
-  <h8>Ask it on StackOverflow!</h8></a>
