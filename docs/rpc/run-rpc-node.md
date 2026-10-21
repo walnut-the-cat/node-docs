@@ -100,7 +100,7 @@ To find a set of active boot nodes, follow these instructions for [testnet](/int
 
 This command will create the required directory structure and will generate `config.json`, `node_key.json`, and `genesis.json` for `testnet` network.
 - `config.json` - Configuration parameters which are responsive for how the node will work. This file should contain the following fields critical for RPC nodes:
-  - `"tracked_shards": [0]` - to track all shards.
+  - `"tracked_shards_config": "AllShards"` - to track all shards.
   - `"pollin_interval": 200ms` - to specify the time in ms to poll the transaction status at the node.
   - `"polling_timeout": 10s` - to specify the time in seconds for the transaction polling process to timeout at the node.
 - `genesis.json` - A file with all the data the network started with at genesis. This contains initial accounts, contracts, access keys, and other records which represents the initial state of the blockchain.
@@ -183,7 +183,7 @@ To find a set of active boot nodes, follow these instructions for [mainnet](/int
 
 This command will create the required directory structure by generating a `config.json`, `node_key.json`, and downloads a `genesis.json` for `mainnet`.
 - `config.json` - Configuration parameters which are responsive for how the node will work. This file should contain the following fields critical for RPC nodes:
-  - `"tracked_shards": [0]` - to track all shards.
+  - `"tracked_shards_config": "AllShards"` - to track all shards.
 - `genesis.json` - A file with all the data the network started with at genesis. This contains initial accounts, contracts, access keys, and other records which represents the initial state of the blockchain.
 - `node_key.json` -  A file which contains a public and private key for the node. Also includes an optional `account_id` parameter which is required to run a validator node (not covered in this doc).
 - `data/` -  A folder in which a NEAR node will write it's state.
@@ -210,10 +210,10 @@ That's all. The node is running and you can see log outputs in your console. It 
 
 
 ## Running a node in `light` mode
-Running a node in `light` mode allows the operator to access chain level data, not state level data. You can also use the `light` node to submit transactions or verify certain proofs. To run a node in a `light` mode that doesn't track any shards, the only change required is to update the `config.json` whereby `tracked_shards` is set to an empty array.
+Running a node in `light` mode allows the operator to access chain level data, not state level data. You can also use the `light` node to submit transactions or verify certain proofs. To run a node in `light` mode that does not track any shards, set `tracked_shards_config` to `NoShards` in `config.json`. Make sure the file has no `tracked_shards` key. The node refuses to start when both keys are set.
 
 ```
-"tracked_shards": []
+"tracked_shards_config": "NoShards"
 ```
 
 
