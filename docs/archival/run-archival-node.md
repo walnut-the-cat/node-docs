@@ -18,7 +18,7 @@ If you are looking to learn how to compile and run a NEAR Archival node natively
 <blockquote class="info">
 <strong>Heads up</strong><br /><br />
 
-Running an archival node is very similar to running a [validator node](/validator/compile-and-run-a-node) as both types of node use the same `nearcore` release. The main difference for running an archival node is a modification to the `config.json` by changing `archive` to `true`. See below for more details.
+Running an archival node is very similar to running a [validator node](/validator/compile-and-run-a-node) as both types of node use the same `nearcore` release. An archival node needs `archive` set to `true`, a cold database configured in `cold_store`, and `save_trie_changes` set to `true`. Set `split_storage.enable_split_storage_view_client` to `true` so that RPC queries can read old data from the cold database. Setting only `archive` to `true` is not enough. With only that setting, the node does not start. See [Run a Split Storage Archival](/archival/split-storage-archival).
 
 </blockquote>
 
@@ -102,7 +102,9 @@ To find a set of active boot nodes, follow these instructions for [testnet](/int
 This command will create the required directory structure and will generate `config.json`, `node_key.json`, and `genesis.json` for `testnet` network.
 - `config.json` - Configuration parameters which are responsive for how the node will work. This file should contain the following fields critical for archival nodes:
   - `"archive": true` - to save the data for all blocks to storage.
-  - `"tracked_shards": [0]` - to track all shards.
+  - `cold_store` - the cold database that holds the old data. See [Run a Split Storage Archival](/archival/split-storage-archival) for its settings.
+  - `"save_trie_changes": true` - required when `cold_store` is set.
+  - `"tracked_shards_config": "AllShards"` - to track all shards. Do not add the deprecated `tracked_shards` key. The node does not start when both keys are set.
 - `genesis.json` - A file with all the data the network started with at genesis. This contains initial accounts, contracts, access keys, and other records which represents the initial state of the blockchain.
 - `node_key.json` -  A file which contains a public and private key for the node. Also includes an optional `account_id` parameter which is required to run a validator node (not covered in this doc).
 - `data/` -  A folder in which a NEAR node will write it's state.
@@ -112,20 +114,14 @@ This command will create the required directory structure and will generate `con
 
 Please make sure that the node is not running while changing the `config.json`.
 
-Once the config has been changed, you can restart the node and the node will start syncing new archival data. In the case where you want the full archival history, you can delete the data dir and start the node from scratch syncing full history or use one of the latest backups containing the data directory snapshot which can be copied under the near home dir (default: ~/.near/data).
+Changing `config.json` does not turn an existing RPC node into an archival node. An RPC node has already deleted old blocks. Archive mode cannot restore them. To run an archival node, start from a split storage archival snapshot, as described in the next step.
 
 
 ### 4. Get data backup {#4-get-data-backup}
 
-The node is ready to be started. However, you must first sync up with the network. This means your node needs to download all the headers and blocks that other nodes in the network already have.
+The node is ready to be started. However, an archival node needs the full history of the chain. Start from a split storage archival snapshot, which holds a hot database and a cold database.
 
-```bash
-$ aws s3 --no-sign-request cp s3://near-protocol-public/backups/testnet/archive/latest .
-$ LATEST=$(cat latest)
-$ aws s3 --no-sign-request cp --no-sign-request --recursive s3://near-protocol-public/backups/testnet/archive/$LATEST ~/.near/data
-```
-
-In the case where you want the full archival history again (for example, if the database gets into an invalid state), you can delete the data dir and start the node from scratch syncing full history or use one of the latest backups containing the data directory snapshot which can be copied under the near home dir (default: ~/.near/data).
+The public NEAR S3 archival backups that this step used to download are no longer available. FastNEAR provides archival snapshots on request. See [FastNEAR Snapshots](https://docs.fastnear.com/docs/snapshots) for how to request access. Place the hot and cold databases where `config.json` expects them, as described in [Run a Split Storage Archival](/archival/split-storage-archival).
 
 ### 5. Run the node {#5-run-the-node}
 To start your node simply run the following command:
@@ -190,7 +186,9 @@ To find a set of active boot nodes, follow these instructions for [mainnet](/int
 This command will create the required directory structure by generating a `config.json`, `node_key.json`, and downloads a `genesis.json` for `mainnet`.
 - `config.json` - Configuration parameters which are responsive for how the node will work. This file should contain the following fields critical for archival nodes:
   - `"archive": true` - to save the data for all blocks to storage.
-  - `"tracked_shards": [0]` - to track all shards.
+  - `cold_store` - the cold database that holds the old data. See [Run a Split Storage Archival](/archival/split-storage-archival) for its settings.
+  - `"save_trie_changes": true` - required when `cold_store` is set.
+  - `"tracked_shards_config": "AllShards"` - to track all shards. Do not add the deprecated `tracked_shards` key. The node does not start when both keys are set.
 - `genesis.json` - A file with all the data the network started with at genesis. This contains initial accounts, contracts, access keys, and other records which represents the initial state of the blockchain.
 - `node_key.json` -  A file which contains a public and private key for the node. Also includes an optional `account_id` parameter which is required to run a validator node (not covered in this doc).
 - `data/` -  A folder in which a NEAR node will write it's state.
@@ -198,15 +196,9 @@ This command will create the required directory structure by generating a `confi
 
 ### 4. Get data backup {#4-get-data-backup-1}
 
-The node is ready to be started. However, you must first sync up with the network. This means your node needs to download all the headers and blocks that other nodes in the network already have.
+The node is ready to be started. However, an archival node needs the full history of the chain. Start from a split storage archival snapshot, which holds a hot database and a cold database.
 
-```bash
-$ aws s3 --no-sign-request cp s3://near-protocol-public/backups/mainnet/archive/latest .
-$ LATEST=$(cat latest)
-$ aws s3 --no-sign-request cp --no-sign-request --recursive s3://near-protocol-public/backups/mainnet/archive/$LATEST ~/.near/data
-```
-
-In the case where you want the full archival history again (for example, if the database gets into an invalid state), you can delete the data dir and start the node from scratch syncing full history or use one of the latest backups containing the data directory snapshot which can be copied under the near home dir (default: ~/.near/data).
+The public NEAR S3 archival backups that this step used to download are no longer available. FastNEAR provides archival snapshots on request. See [FastNEAR Snapshots](https://docs.fastnear.com/docs/snapshots) for how to request access. Place the hot and cold databases where `config.json` expects them, as described in [Run a Split Storage Archival](/archival/split-storage-archival).
 
 ### 5. Run the node {#5-run-the-node-1}
 To start your node simply run the following command:
