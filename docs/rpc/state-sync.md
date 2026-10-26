@@ -6,8 +6,6 @@ sidebar_position: 4
 description: State Sync Configuration
 ---
 
-⚠️ **FREE SNAPSHOT SERVICE BY FASTNEAR WILL BE DEPRECATGED STARTING JUNE 1ST, 2025. We strongly recommend all node operators to use [Epoch Sync](../intro/epoch_sync.md) when possible.**
-
 # Overview
 
 State sync lets a node download the state of a shard from other nodes instead of computing it from every block. Nodes get the state parts from their peers. This is the default, and no config is needed.
