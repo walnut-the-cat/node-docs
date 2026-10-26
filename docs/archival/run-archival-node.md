@@ -65,8 +65,12 @@ $ git fetch origin --tags
 
 Checkout to the branch you need if not `master` (default). Latest release is recommended. Please check the [releases page on GitHub](https://github.com/near/nearcore/releases).
 
+Testnet usually runs a newer release candidate than mainnet. An older release cannot follow the testnet protocol version. The following commands check out the version that the public testnet RPC node runs. They need `jq`:
+
 ```bash
-$ git checkout tags/1.28.0 -b mynode
+$ NEAR_RELEASE_VERSION=$(curl -s -X POST https://rpc.testnet.near.org -H "Content-Type: application/json" \
+    -d '{"jsonrpc":"2.0","id":"dontcare","method":"status","params":[]}' | jq -r '.result.version.version')
+$ git checkout "tags/${NEAR_RELEASE_VERSION:?}" -b mynode
 ```
 
 ### 2. Compile `nearcore` binary {#2-compile-nearcore-binary}
@@ -149,8 +153,11 @@ Next, checkout the release branch you need (recommended) if you will not be usin
 
 For more information on choosing between `master` and latest release branch [ [click here](/validator/compile-and-run-a-node#choosing-your-nearcore-version) ].
 
+The following commands check out the latest stable release:
+
 ```bash
-$ git checkout tags/1.26.1 -b mynode
+$ NEAR_RELEASE_VERSION=$(curl -s https://api.github.com/repos/near/nearcore/releases/latest | grep '"tag_name"' | cut -d '"' -f 4)
+$ git checkout "tags/${NEAR_RELEASE_VERSION:?}" -b mynode
 ```
 
 ### 2. Compile `nearcore` binary {#2-compile-nearcore-binary-1}
