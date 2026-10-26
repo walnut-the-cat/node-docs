@@ -101,21 +101,11 @@ ssh`](https://docs.microsoft.com/en-gb/cli/azure/ssh?view=azure-cli-latest).
 Once connected to the instance, follow [the steps listed
 above](#compiling-and-running-a-node-without-docker).
 
-## Starting a node from backup {#starting-a-node-from-backup}
-Using data backups allows you to sync your node quickly by using public tar backup files. There are two types of backups for available for both `testnet` and `mainnet`:
-- regular
-- archival
-
-### Archive links {#archive-links}
-
-Download the latest snapshots from [Node Data Snapshots](/intro/node-data-snapshots).
-
-Starting node using `neard` backup data:
+## Starting a node with epoch sync {#starting-a-node-from-backup}
+A new node syncs with [Epoch Sync](/intro/node-epoch-sync), so it does not need a data backup. Initialize the node and start it with an empty `data` folder:
 
 ```bash
 ./neard init --chain-id <chain-id> --download-genesis
-mkdir ~/.near/data
-wget -c <link-above> -O - | tar -xC ~/.near/data
 ./neard run
 ```
 
