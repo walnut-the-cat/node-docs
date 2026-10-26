@@ -177,8 +177,11 @@ If everything is in order, start your node with the following command:
 ./target/release/neard run
 ```
 
-After the node starts, check its log.  If it keeps logging
-`Waiting for peers`, it cannot reach any boot node.
+After the node starts, check its log.  The node logs `Waiting for peers`
+until it is connected to at least `consensus.min_num_peers` peers (3 by
+default).  If the message does not go away, the node cannot connect to
+enough peers.  Check that `network.boot_nodes` in `config.json` is not
+empty, and that the machine can reach those addresses.
 
 You can start your node without the JSON RPC endpoint by running the
 above command with an additional `--disable-rpc` flag.  This reduces
