@@ -234,9 +234,7 @@ systemctl enable neard'
 
 Syncing consists of two main steps:
 
-1. **Syncing headers**: achieved in one of two ways:
-   - **[Epoch Sync](#epoch-sync)**: the recommended, decentralized approach. This solution results in the smallest database size, as the node will only contain compacted block headers. A node that is more than two epochs behind the network uses epoch sync automatically. No config change is needed.
-   - **[Using a snapshot](#sync-data-with-snapshot)**: a centralized solution.
+1. **Syncing headers**: a node uses [Epoch Sync](#epoch-sync), a decentralized approach. This results in the smallest database size, as the node only keeps compacted block headers. A node that is more than two epochs behind the network uses epoch sync automatically. No config change is needed.
 
    Only archival nodes sync all headers and blocks from genesis.
 
@@ -282,37 +280,6 @@ jq --arg newBootNodes $BOOT_NODES '.network.boot_nodes = $newBootNodes' ~/.near/
 after that, just restart the node (sudo systemctl restart neard).
 
 Wait for approximately 3 hours and you are done, follow the next step to become an active validator!
-
-
-##### Sync data with snapshot
-⚠️ **FREE SNAPSHOT SERVICE BY FASTNEAR WILL BE DEPRECATED STARTING JUNE 1ST, 2025. We strongly recommend all node operators to use epoch sync.**
-
-To sync data fast, we can download the snapshot of recent NEAR epochs instead of waiting for node sync with other peers, this process can take a few hours (usually less than 7 hours for MainNet, 1 hour for TestNet), the expected data size will be around 100GB.
-
-Run this to download snapshot (huge thanks FastNEAR for maintaining this):
-
-```
-# MainNet
-
-curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/fastnear/static/refs/heads/main/down_rclone.sh | DATA_PATH=~/.near/data CHAIN_ID=mainnet RPC_TYPE=fast-rpc bash
-
-# TestNet
-
-curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/fastnear/static/refs/heads/main/down_rclone.sh | DATA_PATH=~/.near/data CHAIN_ID=testnet bash 
-
-```
-
-Once snapshot is downloaded, you can use the following commands to 'start' or 'restart' neard:
-
-```
-## Fresh start
-./target/release/neard --home ~/.near run
-
-## Restart
-sudo systemctl restart neard
-
-```
-
 
 
 If you need to make a change to service in the config.json file, the node also need to be reloaded:
