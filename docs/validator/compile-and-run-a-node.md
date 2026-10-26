@@ -23,12 +23,12 @@ If you are looking to learn how to compile and run a NEAR validator node nativel
 - Installed developer tools:
   - MacOS
     ```bash
-    $ brew install cmake protobuf llvm awscli
+    $ brew install cmake protobuf llvm awscli jq
     ```
   - Linux
     ```bash
     $ apt update
-    $ apt install -y git binutils-dev libcurl4-openssl-dev zlib1g-dev libdw-dev libiberty-dev cmake gcc g++ python docker.io protobuf-compiler libssl-dev pkg-config clang llvm cargo awscli
+    $ apt install -y git binutils-dev libcurl4-openssl-dev zlib1g-dev libdw-dev libiberty-dev cmake gcc g++ python docker.io protobuf-compiler libssl-dev pkg-config clang llvm cargo awscli jq
     ```
 ### Network optimizations {#network-optimizations}
 To optimize the network settings for better performance, execute the following commands:
@@ -110,8 +110,9 @@ The binary path is `target/release/neard`
 
 For `localnet`, you also have the option to build in nightly mode (which is experimental and is used for cutting-edge testing). When you compile, use the following command:
 ```bash
-$ cargo build --package neard --features nightly_protocol,nightly_protocol_features --release
+$ cargo build -p neard --release --features nightly
 ```
+`make neard-nightly-release` runs the same command.
 
 ### 3. Initialize working directory {#initialize-working-directory}
 
@@ -156,8 +157,12 @@ $ git fetch origin --tags
 
 Checkout to the branch you need if not `master` (default). Latest release is recommended. Please check the [releases page on GitHub](https://github.com/near/nearcore/releases).
 
+Testnet usually runs a newer release candidate than mainnet. An older release cannot follow the testnet protocol version. The following commands check out the version that the public testnet RPC node runs. They need `jq`:
+
 ```bash
-$ git checkout tags/1.35.0 -b mynode
+$ NEAR_RELEASE_VERSION=$(curl -s -X POST https://rpc.testnet.near.org -H "Content-Type: application/json" \
+    -d '{"jsonrpc":"2.0","id":"dontcare","method":"status","params":[]}' | jq -r '.result.version.version')
+$ git checkout "tags/${NEAR_RELEASE_VERSION:?}" -b mynode
 ```
 
 ### 2. Compile `nearcore` binary {#compile-nearcore-binary-1}
@@ -385,8 +390,11 @@ release.
 
 For more information on choosing between `master` and latest release branch [ [click here](/validator/compile-and-run-a-node#choosing-your-nearcore-version) ].
 
+The following commands check out the latest stable release:
+
 ```bash
-$ git checkout tags/1.26.1 -b mynode
+$ NEAR_RELEASE_VERSION=$(curl -s https://api.github.com/repos/near/nearcore/releases/latest | grep '"tag_name"' | cut -d '"' -f 4)
+$ git checkout "tags/${NEAR_RELEASE_VERSION:?}" -b mynode
 ```
 
 ### 2. Compile `nearcore` binary {#compile-nearcore-binary-2}
