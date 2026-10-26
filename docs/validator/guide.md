@@ -354,7 +354,6 @@ near-validator validators network-config testnet next
 - A proposal must be submitted by pinging the contract
 - Proposals made during an epoch are used at the end of that epoch to select the validators for the epoch after the next one. If your pool is selected, it becomes active one to two epochs after the proposal, depending on when in the epoch the proposal was made.
 - Once in the validator set, a validator must produce at least 80% of its expected blocks and at least 80% of its expected chunks in each epoch. A validator that has no blocks or chunks to produce (a chunk validator only) must send at least 70% of its expected chunk endorsements. A validator below a threshold is kicked out. It keeps its seat for the next epoch and loses it in the epoch after that.
-- Kickouts for low production are limited. Validators are ranked by uptime. The ones with the highest uptime are exempt until the exempt validators hold at least 70% of the total stake. Validators that were kicked out in the previous epoch cannot be exempt.
 
 Check the running status of the validator node. If "Validator" is showing up, your pool is selected in the current validators list.
 
