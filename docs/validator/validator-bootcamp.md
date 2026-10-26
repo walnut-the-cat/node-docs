@@ -514,8 +514,7 @@ export NEAR_RELEASE_VERSION=$(curl -s https://api.github.com/repos/near/nearcore
 ```
 ```
 cd nearcore
-git checkout "tags/${NEAR_RELEASE_VERSION:?}"
-make release
+git checkout "tags/${NEAR_RELEASE_VERSION:?}" && make release
 ```
 * Install Nodejs and NPM
 ```
