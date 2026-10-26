@@ -691,7 +691,7 @@ In order to become a validator and enter the validator set, a minimum set of suc
 * There must be enough delegations to meet the minimum seat price. See the seat price [here](https://explorer.testnet.near.org/nodes/validators).
 * A proposal must be submitted by pinging the contract
 * A proposal sent during an epoch is used to select the validators of the epoch after the next one. If it is accepted, the validator joins at the start of that epoch. So it waits between one and two epochs.
-* Once in the validator set, the validator must produce at least 80% of its expected blocks and at least 80% of its expected chunks. A validator that only validates chunks must send at least 70% of its expected chunk endorsements. A validator below these thresholds is kicked out of the validator set. Kickouts for low production are limited. Validators are ranked by uptime. The ones with the highest uptime are exempt until the exempt validators hold at least 70% of the total stake. Validators that were kicked out in the previous epoch cannot be exempt.
+* Once in the validator set, the validator must produce at least 80% of its expected blocks and at least 80% of its expected chunks. A validator that only validates chunks must send at least 70% of its expected chunk endorsements. A validator below these thresholds is kicked out of the validator set.
 
 Check running status of validator node. If “Validator” is showing up, your pool is selected in the current validators list.
 
@@ -1412,7 +1412,7 @@ vi ~/.near/<network>/validator_key.json
 > Note: if it does now match the staking pool id upate it and restart your node.
 
 #### Not producing enough blocks or chunks
-A validator is kicked out of the validator set when it produces too few blocks, chunks, or chunk endorsements. On mainnet, block and chunk producers are kicked out below 80% of their expected blocks or chunks. Validators with no expected blocks and no expected chunks (chunk validators only) are kicked out below 70% of their expected chunk endorsements, with reason `NotEnoughChunkEndorsements`. Kickouts for low production are limited. Validators are ranked by uptime. The ones with the highest uptime are exempt until the exempt validators hold at least 70% of the total stake. Validators that were kicked out in the previous epoch cannot be exempt. You can check the expected and produced numbers via NEAR-Cli and RPC. For endorsements, compare `num_produced_endorsements` with `num_expected_endorsements`.
+A validator is kicked out of the validator set when it produces too few blocks, chunks, or chunk endorsements. On mainnet, block and chunk producers are kicked out below 80% of their expected blocks or chunks. Validators with no expected blocks and no expected chunks (chunk validators only) are kicked out below 70% of their expected chunk endorsements, with reason `NotEnoughChunkEndorsements`. You can check the expected and produced numbers via NEAR-Cli and RPC. For endorsements, compare `num_produced_endorsements` with `num_expected_endorsements`.
 
 **NEAR-CLI**
 
