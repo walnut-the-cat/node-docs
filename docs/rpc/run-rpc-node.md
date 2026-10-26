@@ -115,15 +115,9 @@ This command will create the required directory structure and will generate `con
 > The genesis file for `testnet` is big (6GB +) so this command will be running for a while and no progress will be shown.
 
 
-### 4. Get data backup {#4-get-data-backup}
+### 4. Sync with the network {#4-get-data-backup}
 
-⚠️ **FREE SNAPSHOT SERVICE BY FASTNEAR WILL BE DEPRECATGED STARTING JUNE 1ST, 2025. We strongly recommend all node operators to use [Epoch Sync](../intro/epoch_sync.md) when possible.**
-
-The node is ready to be started. However, you must first sync up with the network. This means your node needs to download all the headers and blocks that other nodes in the network already have.
-
-~~The latest daily snapshots are made available to the public by FastNear, and can be used to set up a validator node or RPC. 
-For detailed instructions, please refer to [HERE](https://docs.fastnear.com/docs/snapshots).~~
-While snapshot-based syncing was previously the recommended default, we now recommend Epoch Sync—a faster, more lightweight method that allows a node to catch up from genesis without downloading a large state snapshot.
+The node is ready to be started. When it starts with an empty `data` folder, it syncs with the network using [Epoch Sync](../intro/epoch_sync.md). Epoch sync downloads only a small set of past block headers instead of all of them. It runs automatically, and no config change is needed.
 
 ### 5. Run the node {#5-run-the-node}
 To start your node simply run the following command:
@@ -132,7 +126,7 @@ To start your node simply run the following command:
 $ ./target/release/neard --home ~/.near run
 ```
 
-That's all. The node is running you can see log outputs in your console. It will download a bit of missing data since the last backup was performed but it shouldn't take much time.
+That's all. The node is running and you can see log outputs in your console. The node first catches up with the network. You can follow the sync progress in the log.
 
 
 ## `mainnet`
@@ -195,15 +189,9 @@ This command will create the required directory structure by generating a `confi
 - `node_key.json` -  A file which contains a public and private key for the node. Also includes an optional `account_id` parameter which is required to run a validator node (not covered in this doc).
 - `data/` -  A folder in which a NEAR node will write it's state.
 
-### 4. Get data backup {#4-get-data-backup-1}
+### 4. Sync with the network {#4-get-data-backup-1}
 
-⚠️ **FREE SNAPSHOT SERVICE BY FASTNEAR WILL BE DEPRECATGED STARTING JUNE 1ST, 2025. We strongly recommend all node operators to use [Epoch Sync](../intro/epoch_sync.md) when possible.**
-
-The node is ready to be started. However, you must first sync up with the network. This means your node needs to download all the headers and blocks that other nodes in the network already have.
-
-~~The latest daily snapshots are made available to the public by FastNear, and can be used to set up a validator node or RPC. 
-For detailed instructions, please refer to [HERE](https://docs.fastnear.com/docs/snapshots).~~
-While snapshot-based syncing was previously the recommended default, we now recommend Epoch Sync—a faster, more lightweight method that allows a node to catch up from genesis without downloading a large state snapshot.
+The node is ready to be started. When it starts with an empty `data` folder, it syncs with the network using [Epoch Sync](../intro/epoch_sync.md). Epoch sync downloads only a small set of past block headers instead of all of them. It runs automatically, and no config change is needed.
 
 ### 5. Run the node {#5-run-the-node}
 To start your node simply run the following command:
@@ -212,7 +200,7 @@ To start your node simply run the following command:
 $ ./target/release/neard --home ~/.near run
 ```
 
-That's all. The node is running and you can see log outputs in your console. It will download a bit of missing data since the last backup was performed but it shouldn't take much time.
+That's all. The node is running and you can see log outputs in your console. The node first catches up with the network. You can follow the sync progress in the log.
 
 
 
