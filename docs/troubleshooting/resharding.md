@@ -15,14 +15,45 @@ Since protocol version 85 (nearcore 2.13.0), NEAR splits shards automatically. A
 
 Mainnet and testnet already have 10 shards, which is the current limit. A further split needs a new protocol version that raises the limit.
 
+For details, see [Dynamic Resharding](https://github.com/near/nearcore/blob/master/docs/architecture/how/dynamic_resharding.md) in the nearcore repository.
+
 ## What to do as a node operator {#operators}
 
-- Do not hardcode the number of shards or the mapping from account to shard. Shard IDs do not run from 0 to the number of shards. Read the current shard layout from the `shard_layout` field of the `EXPERIMENTAL_protocol_config` RPC method. Expect it to change at epoch boundaries. The same response also has a `dynamic_resharding` field, which is `false` on mainnet and testnet. It is a legacy genesis field and does not show whether shards are split automatically.
-- Watch the `near_resharding_status` metric. It has one series per parent shard. The values are `1` scheduled, `2` splitting flat storage, `3` flat storage catch-up, `4` resharding trie state, `5` done, `-1` failed and `-2` cancelled. The metrics `near_resharding_start_timestamp_seconds` and `near_resharding_total_duration_seconds` show when a split started and how long it took.
-- Avoid restarting the node while a split is in progress (`near_resharding_status` from `2` to `4`). If the node stops during a split and then refuses to start with an error that says `must run resume_resharding`, the error names the parent shard, for example `s8.v3`. Run `neard flat-storage resume-resharding --shard-id 8` with the number of that shard, and then start the node.
-- If a split fails (`-1`) on a non-archival node, stop the node, remove the `data` folder in the node's home directory, and start the node again. The node then catches up with [epoch sync](/intro/node-epoch-sync).
+Do not hardcode the number of shards or the mapping from account to shard. Shard IDs do not run from 0 to the number of shards. Read the current shard layout from the `shard_layout` field of the `EXPERIMENTAL_protocol_config` RPC method. Expect it to change at epoch boundaries. The same response also has a `dynamic_resharding` field, which is `false` on mainnet and testnet. It is a legacy genesis field and does not show whether shards are split automatically.
 
-For details, see [Dynamic Resharding](https://github.com/near/nearcore/blob/master/docs/architecture/how/dynamic_resharding.md) in the nearcore repository.
+### Monitoring {#monitoring}
+
+Watch the `near_resharding_status` metric. It has one series per parent shard:
+
+| Value | Meaning |
+|-------|---------|
+| `1` | Scheduled |
+| `2` | Splitting flat storage |
+| `3` | Flat storage catch-up |
+| `4` | Resharding trie state |
+| `5` | Done |
+| `-1` | Failed |
+| `-2` | Cancelled |
+
+The metrics `near_resharding_start_timestamp_seconds` and `near_resharding_total_duration_seconds` show when a split started and how long it took.
+
+Avoid restarting the node while a split is in progress, which is when `near_resharding_status` is from `2` to `4`.
+
+### If the node does not start after a split was interrupted {#resume-resharding}
+
+If the node stops during a split, it can refuse to start with an error that says `must run resume_resharding`. The error names the parent shard, for example `s8.v3`. The number after `s` is the shard ID, `8` in this example. Run this command with that shard ID, and then start the node:
+
+```bash
+neard flat-storage resume-resharding --shard-id 8
+```
+
+### If a split fails {#failed-split}
+
+If `near_resharding_status` is `-1` on a non-archival node:
+
+1. Stop the node.
+2. Remove the `data` folder in the node's home directory.
+3. Start the node again. The node then catches up with [epoch sync](/intro/node-epoch-sync).
 
 ## Earlier reshardings {#history}
 
