@@ -1388,15 +1388,27 @@ On mainnet, only validators that hold one of the 100 block producer seats are ex
 
 `validator_key.json` must contain your staking pool id as `account_id`. It must also contain the public key that is registered for your pool in the current epoch. If the `account_id` is in the current validator set but the public key differs from the registered key, neard stops with an error that starts with `validator key mismatch for <account>`. The node checks this once per epoch after it is synced. If the `account_id` is not in the current validator set, the node does not act as a validator and produces nothing.
 
-**Get the staking pool key**
+Two keys matter here. The key that is active for your pool in the current epoch must be in `validator_key.json`. The key stored in the staking pool contract is the key that the pool uses in its next stake proposal. The two keys are normally the same.
+
+**Get the key that is active in the current epoch**
 ```
-near view <POOL_ID> get_staking_key '{}'
+curl -s -d '{"jsonrpc": "2.0", "method": "validators", "id": "dontcare", "params": [null]}' -H 'Content-Type: application/json' http://localhost:3030/ | jq -r '.result.current_validators[] | select(.account_id == "<POOL_ID>") | .public_key'
 ```
+If neard has stopped, send this request to any synced RPC node instead of `localhost`.
+
 **Get the key in validator_key.json**
 ```
 cat ~/.near/<network>/validator_key.json | grep public_key
 ```
-> Note: Both keys must match. A new staking key becomes active two epochs after you register it with `update_staking_key`. Until then, keep the key that is registered for the current epoch in `validator_key.json`. Otherwise the node stops with the error above. See [Can Keys be Changed?](/intro/keys#can-keys-be-changed) for the steps.
+> Note: These two keys must match. Otherwise the node stops with the error above.
+
+**Get the key stored in the staking pool contract**
+```
+near view <POOL_ID> get_staking_key '{}'
+```
+> Note: When you call `update_staking_key`, the contract stores the new key at once. The new key becomes active two epochs later. During those two epochs, the contract key and the active key differ, which is expected. Keep the active key in `validator_key.json` until the new key becomes active.
+
+To rotate the key on purpose, follow the steps in [Can Keys be Changed?](/intro/keys#can-keys-be-changed). The command that registers the new key in the pool is:
 
 **Update staking pool key**
 ```
