@@ -8,7 +8,7 @@ description: State Sync Configuration
 
 # Overview
 
-State sync lets a node download the state of a shard from other nodes instead of computing it from every block. Nodes get the state parts from their peers. This is the default, and no config is needed.
+State sync lets a node download the state of a shard from other nodes instead of computing it from every block. Nodes get the state parts from other nodes in the network.
 
 ## When state sync runs
 
@@ -16,7 +16,7 @@ No option turns state sync on or off. The node decides when to run it:
 
 * A non-archival node that is more than two epochs behind the network runs epoch sync, then header sync, then state sync, then block sync. Two epochs is the default of `epoch_sync.epoch_sync_horizon_num_epochs`.
 * Archival nodes, and nodes that are closer to the head of the chain, catch up with header sync and block sync only. This way archival nodes keep the full history.
-* A node also uses state sync to catch up on the shards that it will track in the next epoch.
+* A validator whose shard assignment changes also uses state sync. It downloads the state of the shards that it will track in the next epoch.
 
 ## State parts from external storage are no longer supported
 
@@ -52,7 +52,7 @@ To see the config values that the node uses, call the `client_config` JSON-RPC m
 
 2. Has your node run out of available disk space?
 
-If everything looks right, stop the node, remove the `data` folder in the node's home directory, and start the node again. A non-archival node that starts with an empty `data` folder uses [Epoch Sync](../intro/epoch_sync.md).
+If the config is correct and the disk has free space, stop the node, remove the `data` folder in the node's home directory, and start the node again. A non-archival node that starts with an empty `data` folder uses [Epoch Sync](../intro/epoch_sync.md).
 
 ## Running a validator that tracks a single shard
 
@@ -64,10 +64,7 @@ Configure the node to track no shards:
 
 Remove any `tracked_shards`, `tracked_accounts`, `tracked_shard_schedule` and `tracked_shadow_validator` keys from `config.json`. These keys are deprecated. The node refuses to start when one of them is set together with `tracked_shards_config`.
 
-It is counter-intuitive but it works. If a node stakes and is accepted as a
-validator, then it will track the shard that it needs to track to fulfill its
-validator role. The assignment of validators to shards is done by the consensus
-of validators.
+`NoShards` is the correct config for a validator. With it, the node tracks whichever shards consensus assigns to it.
 
 Note that in different epochs a validator may be assigned to different shards. A
 node switches tracked shards by using the State Sync mechanism for a single
