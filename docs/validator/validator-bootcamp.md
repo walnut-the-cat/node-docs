@@ -276,14 +276,27 @@ rm ~/.near/config.json
 wget -O ~/.near/config.json https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deploy/<network>/validator/config.json
 ```
 
-### Get data backup
+### Add boot nodes
 
-The node is ready to be started. However, you must first sync up with the network. This means your node needs to download all the headers and blocks that other nodes in the network already have.
+The node needs boot nodes to find its first peers. The reference validator `config.json` has no boot nodes. The following commands ask an RPC node for the validators it is connected to, and write them to `config.json`. They need `jq`. Replace `<network>` with `testnet` or `mainnet`:
 
-The latest daily snapshots are made available to the public by FastNear, and can be used to set up a validator node. 
-For detailed instructions, please refer to [this guide](https://docs.fastnear.com/docs/snapshots).
+```
+BOOT_NODES=$(curl -s -X POST https://rpc.<network>.near.org -H "Content-Type: application/json" -d '{
+        "jsonrpc": "2.0",
+        "method": "network_info",
+        "params": [],
+        "id": "dontcare"
+      }' | jq -r '.result.active_peers as $list1 | .result.known_producers as $list2 |
+          $list1[] as $active_peer | $list2[] |
+          select(.peer_id == $active_peer.id) |
+          "\(.peer_id)@\($active_peer.addr)"' | paste -sd "," -)
+echo "${BOOT_NODES:?}"
+jq --arg boot_nodes "${BOOT_NODES:?}" '.network.boot_nodes = $boot_nodes' ~/.near/config.json > ~/.near/config.tmp && mv ~/.near/config.tmp ~/.near/config.json
+```
 
-NOTE: Make sure you have enough disk space to unpack inside the data folder.
+### Sync with the network
+
+The node is ready to be started. When it starts with an empty `data` folder, it syncs with the network using [Epoch Sync](/intro/node-epoch-sync). It does not need a snapshot.
 
 ### Run the node
 To start your node simply run the following command:
@@ -567,12 +580,23 @@ near login
 ![img](/images/5.png)
 
 #### Step 4 – Initialize & Start the Node
-* Download the latest genesis, config files:
+* Download the latest genesis and config files, and add boot nodes to the config. The node needs boot nodes to find its first peers, and the reference validator `config.json` has none. The `BOOT_NODES` command asks a mainnet RPC node for the validators it is connected to. It needs `jq`:
 ```
 mkdir ~/.near
 cd ~/.near
 wget -c https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deploy/mainnet/genesis.json
 wget -c https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deploy/mainnet/validator/config.json
+BOOT_NODES=$(curl -s -X POST https://rpc.mainnet.near.org -H "Content-Type: application/json" -d '{
+        "jsonrpc": "2.0",
+        "method": "network_info",
+        "params": [],
+        "id": "dontcare"
+      }' | jq -r '.result.active_peers as $list1 | .result.known_producers as $list2 |
+          $list1[] as $active_peer | $list2[] |
+          select(.peer_id == $active_peer.id) |
+          "\(.peer_id)@\($active_peer.addr)"' | paste -sd "," -)
+echo "${BOOT_NODES:?}"
+jq --arg boot_nodes "${BOOT_NODES:?}" '.network.boot_nodes = $boot_nodes' config.json > config.tmp && mv config.tmp config.json
 ```
 * Download the latest snapshot from [the snapshot page](/intro/node-data-snapshots).
 
