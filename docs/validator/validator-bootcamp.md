@@ -580,16 +580,23 @@ wget -c https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deplo
 ```
 target/release/neard init --chain-id="mainnet" --account-id=<staking pool id>
 ```
-##### Create `validator_key.json`
+##### Check `validator_key.json`
+`neard init --account-id=<staking pool id>` in the previous step created `~/.near/validator_key.json` with a new key. This is the file that neard reads. Keep this key, and show its public key:
+```
+grep public_key ~/.near/validator_key.json
+```
+> Note: Use this `public_key` as the `stake_public_key` when you create the staking pool. If the two keys differ, the node stops with a "validator key mismatch" error once the pool is in the validator set.
+
+##### Optional: use a different key
+Follow these steps only if you want to use a different key than the one that `neard init` created. They replace `~/.near/validator_key.json`.
 * Generate the Key file:
 ```
 near generate-key <pool_id>
 ```
-* Copy the generated file to `~/.near/validator_key.json`. This is the file that neard reads. Make sure to replace YOUR_WALLET by your accountId
+* Copy the generated file to `~/.near/validator_key.json`. With `NEAR_ENV=mainnet`, `near generate-key` saves the key in `~/.near-credentials/mainnet/<pool_id>.json`.
 ```
-cp ~/.near-credentials/YOUR_WALLET.json ~/.near/validator_key.json
+cp ~/.near-credentials/mainnet/<pool_id>.json ~/.near/validator_key.json
 ```
-> Note: `neard init --account-id=<staking pool id>` in the previous step already created `~/.near/validator_key.json` with a new key. The `cp` command replaces that file. You can also skip this section and keep the key that `neard init` created. Either way, the `public_key` in `~/.near/validator_key.json` must be the `stake_public_key` of your staking pool. If it is not, the node stops with a "validator key mismatch" error once the pool is in the validator set.
 * Edit “account_id” => xx.poolv1.near, where xx is your PoolName
 * Change “private_key” to “secret_key”
 > Note: The account_id must match the staking pool contract name or you will not be able to sign blocks.
@@ -599,6 +606,9 @@ cp ~/.near-credentials/YOUR_WALLET.json ~/.near/validator_key.json
 >   "public_key": "ed25519:HeaBJ3xLgvZacQWmEctTeUqyfSU4SDEnEwckWxd92W2G",
 >   "secret_key": "ed25519:****"
 > }
+* Use the `public_key` of this file as the `stake_public_key` when you create the staking pool.
+
+##### Start the node
 * Start the Node
 ```
 target/release/neard run
