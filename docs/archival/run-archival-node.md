@@ -30,12 +30,12 @@ Running an archival node is very similar to running a [validator node](/validato
 - Installed developer tools:
   - MacOS
     ```bash
-    $ brew install cmake protobuf clang llvm awscli
+    $ brew install cmake protobuf clang llvm awscli jq
     ```
   - Linux
     ```bash
     $ apt update
-    $ apt install -y git binutils-dev libcurl4-openssl-dev zlib1g-dev libdw-dev libiberty-dev cmake gcc g++ python docker.io protobuf-compiler libssl-dev pkg-config clang llvm cargo awscli
+    $ apt install -y git binutils-dev libcurl4-openssl-dev zlib1g-dev libdw-dev libiberty-dev cmake gcc g++ python docker.io protobuf-compiler libssl-dev pkg-config clang llvm cargo awscli jq
     ```
 ---
 
@@ -65,21 +65,23 @@ $ git fetch origin --tags
 
 Checkout to the branch you need if not `master` (default). Latest release is recommended. Please check the [releases page on GitHub](https://github.com/near/nearcore/releases).
 
-Testnet usually runs a newer release candidate than mainnet. An older release cannot follow the testnet protocol version. The following commands check out the version that the public testnet RPC node runs. They need `jq`:
+Testnet usually runs a newer release candidate than mainnet. An older release cannot follow the testnet protocol version. The following command reads the version that the public testnet RPC node runs. It needs `jq`:
 
 ```bash
 $ NEAR_RELEASE_VERSION=$(curl -s -X POST https://rpc.testnet.near.org -H "Content-Type: application/json" \
     -d '{"jsonrpc":"2.0","id":"dontcare","method":"status","params":[]}' | jq -r '.result.version.version')
-$ git checkout "tags/${NEAR_RELEASE_VERSION:?}" -b mynode
+$ echo "${NEAR_RELEASE_VERSION:?}"
 ```
 
 ### 2. Compile `nearcore` binary {#2-compile-nearcore-binary}
 
-In the `nearcore` folder run the following commands:
+In the `nearcore` folder, check out that version and build it:
 
 ```bash
-$ make release
+$ git checkout "tags/${NEAR_RELEASE_VERSION:?}" && make release
 ```
+
+The build runs only if the checkout succeeds. Otherwise `make` would build the current branch, which is `master` after a fresh clone.
 
 This will start the compilation process. It will take some time
 depending on your machine power (e.g. i9 8-core CPU, 32 GB RAM, SSD
@@ -125,7 +127,7 @@ Changing `config.json` does not turn an existing RPC node into an archival node.
 
 The node is ready to be started. However, an archival node needs the full history of the chain. Start from a split storage archival snapshot, which holds a hot database and a cold database.
 
-The public NEAR S3 archival backups that this step used to download are no longer available. FastNEAR provides archival snapshots on request. See [FastNEAR Snapshots](https://docs.fastnear.com/docs/snapshots) for how to request access. Place the hot and cold databases where `config.json` expects them, as described in [Run a Split Storage Archival](/archival/split-storage-archival).
+The public NEAR S3 archival backups that this step used to download are no longer available. FastNEAR provides archival snapshots on request. See [FastNEAR Snapshots](https://docs.fastnear.com/snapshots) for how to request access. To place the hot and cold databases and set `config.json`, follow [Restore from an archival snapshot](/archival/split-storage-archival#restore-from-snapshot).
 
 ### 5. Run the node {#5-run-the-node}
 To start your node simply run the following command:
@@ -153,20 +155,22 @@ Next, checkout the release branch you need (recommended) if you will not be usin
 
 For more information on choosing between `master` and latest release branch [ [click here](/validator/compile-and-run-a-node#choosing-your-nearcore-version) ].
 
-The following commands check out the latest stable release:
+The following command reads the latest stable release:
 
 ```bash
 $ NEAR_RELEASE_VERSION=$(curl -s https://api.github.com/repos/near/nearcore/releases/latest | grep '"tag_name"' | cut -d '"' -f 4)
-$ git checkout "tags/${NEAR_RELEASE_VERSION:?}" -b mynode
+$ echo "${NEAR_RELEASE_VERSION:?}"
 ```
 
 ### 2. Compile `nearcore` binary {#2-compile-nearcore-binary-1}
 
-In the `nearcore` folder run the following commands:
+In the `nearcore` folder, check out that version and build it:
 
 ```bash
-$ make release
+$ git checkout "tags/${NEAR_RELEASE_VERSION:?}" && make release
 ```
+
+The build runs only if the checkout succeeds. Otherwise `make` would build the current branch, which is `master` after a fresh clone.
 
 This will start the compilation process. It will take some time
 depending on your machine power (e.g. i9 8-core CPU, 32 GB RAM, SSD
@@ -205,7 +209,7 @@ This command will create the required directory structure by generating a `confi
 
 The node is ready to be started. However, an archival node needs the full history of the chain. Start from a split storage archival snapshot, which holds a hot database and a cold database.
 
-The public NEAR S3 archival backups that this step used to download are no longer available. FastNEAR provides archival snapshots on request. See [FastNEAR Snapshots](https://docs.fastnear.com/docs/snapshots) for how to request access. Place the hot and cold databases where `config.json` expects them, as described in [Run a Split Storage Archival](/archival/split-storage-archival).
+The public NEAR S3 archival backups that this step used to download are no longer available. FastNEAR provides archival snapshots on request. See [FastNEAR Snapshots](https://docs.fastnear.com/snapshots) for how to request access. To place the hot and cold databases and set `config.json`, follow [Restore from an archival snapshot](/archival/split-storage-archival#restore-from-snapshot).
 
 ### 5. Run the node {#5-run-the-node-1}
 To start your node simply run the following command:
