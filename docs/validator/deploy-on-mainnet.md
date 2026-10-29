@@ -41,21 +41,17 @@ NEAR_RELEASE_VERSION=$(curl -s https://api.github.com/repos/near/nearcore/releas
 echo "${NEAR_RELEASE_VERSION:?}"
 ```
 
-Now, go to the cloned repository’s root directory and checkout the
-code corresponding to the latest stable release.  Each nearcore release
-is a git tag:
+Now, go to the cloned repository’s root directory, check out the code
+corresponding to the latest stable release and build the executable.
+Each nearcore release is a git tag:
 
 ```bash
 cd nearcore
-git checkout "tags/${NEAR_RELEASE_VERSION:?}"
+git checkout "tags/${NEAR_RELEASE_VERSION:?}" && make neard
 ```
 
-Finally, build the executable:
-
-```bash
-make neard
-```
-
+The build runs only if the checkout succeeds.  Otherwise `make` would
+build the current branch, which is `master` after a fresh clone.
 `make neard` builds with the release profile, which already enables
 full optimization.  The executable is at `./target/release/neard`.
 
