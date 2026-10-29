@@ -29,12 +29,12 @@ Running a RPC node is very similar to running a [validator node](/validator/comp
 - Developer tools:
   - MacOS
     ```bash
-    $ brew install cmake protobuf clang llvm awscli
+    $ brew install cmake protobuf clang llvm awscli jq
     ```
   - Linux
     ```bash
     $ apt update
-    $ apt install -y git binutils-dev libcurl4-openssl-dev zlib1g-dev libdw-dev libiberty-dev cmake gcc g++ python docker.io protobuf-compiler libssl-dev pkg-config clang llvm cargo awscli
+    $ apt install -y git binutils-dev libcurl4-openssl-dev zlib1g-dev libdw-dev libiberty-dev cmake gcc g++ python docker.io protobuf-compiler libssl-dev pkg-config clang llvm cargo awscli jq
     ```
 ---
 
@@ -64,21 +64,23 @@ $ git fetch origin --tags
 
 Checkout to the branch you need if not `master` (default). Latest release is recommended. Please check the [releases page on GitHub](https://github.com/near/nearcore/releases).
 
-Testnet usually runs a newer release candidate than mainnet. An older release cannot follow the testnet protocol version. The following commands check out the version that the public testnet RPC node runs. They need `jq`:
+Testnet usually runs a newer release candidate than mainnet. An older release cannot follow the testnet protocol version. The following command reads the version that the public testnet RPC node runs. It needs `jq`:
 
 ```bash
 $ NEAR_RELEASE_VERSION=$(curl -s -X POST https://rpc.testnet.near.org -H "Content-Type: application/json" \
     -d '{"jsonrpc":"2.0","id":"dontcare","method":"status","params":[]}' | jq -r '.result.version.version')
-$ git checkout "tags/${NEAR_RELEASE_VERSION:?}" -b mynode
+$ echo "${NEAR_RELEASE_VERSION:?}"
 ```
 
 ### 2. Compile `nearcore` binary {#2-compile-nearcore-binary}
 
-In the `nearcore` folder run the following commands:
+In the `nearcore` folder, check out that version and build it:
 
 ```bash
-$ make release
+$ git checkout "tags/${NEAR_RELEASE_VERSION:?}" && make release
 ```
+
+The build runs only if the checkout succeeds. Otherwise `make` would build the current branch, which is `master` after a fresh clone.
 
 This will start the compilation process. It will take some time
 depending on your machine power (e.g. i9 8-core CPU, 32 GB RAM, SSD
@@ -91,14 +93,28 @@ The binary path is `target/release/neard`
 
 ### 3. Initialize working directory {#3-initialize-working-directory}
 
-The NEAR node requires a working directory with a couple of configuration files. Generate the initial required working directory by running:
+The NEAR node requires a working directory with a couple of configuration files. It also needs boot nodes to find its first peers. The reference RPC `config.json` has no boot nodes, so you need to pass them to `neard init`. The following command asks a testnet RPC node for the validators it is connected to. It needs `jq`. You can use any RPC provider for this command:
 
 ```bash
-$ ./target/release/neard --home ~/.near init --chain-id testnet --download-genesis --download-config rpc
+$ BOOT_NODES=$(curl -s -X POST https://rpc.testnet.near.org -H "Content-Type: application/json" -d '{
+        "jsonrpc": "2.0",
+        "method": "network_info",
+        "params": [],
+        "id": "dontcare"
+      }' | jq -r '.result.active_peers as $list1 | .result.known_producers as $list2 |
+          $list1[] as $active_peer | $list2[] |
+          select(.peer_id == $active_peer.id) |
+          "\(.peer_id)@\($active_peer.addr)"' | paste -sd "," -)
+$ echo "${BOOT_NODES:?}"
 ```
 
-> You can specify trusted boot nodes that you'd like to use by passing the `--boot-nodes` flag during `init`.
-To find a set of active boot nodes, follow these instructions for [testnet](/intro/node-epoch-sync#testnet).
+Then generate the working directory with the reference RPC config and the boot nodes:
+
+```bash
+$ ./target/release/neard --home ~/.near init --chain-id testnet --download-genesis --download-config rpc --boot-nodes "${BOOT_NODES:?}"
+```
+
+> `neard init` does not change an existing `config.json`. If you already ran it without `--boot-nodes`, add the boot nodes to `config.json` as described in [Epoch Sync](/intro/node-epoch-sync#testnet).
 
 > You can skip the `--home` argument if you are fine with the default working directory in `~/.near`. If not, pass your preferred location.
 
@@ -117,7 +133,15 @@ This command will create the required directory structure and will generate `con
 
 ### 4. Sync with the network {#4-get-data-backup}
 
-The node is ready to be started. When it starts with an empty `data` folder, it syncs with the network using [Epoch Sync](../intro/epoch_sync.md). Epoch sync downloads only a small set of past block headers instead of all of them. It runs automatically, and no config change is needed.
+Before you start the node, check that `network.boot_nodes` in `config.json` is not empty:
+
+```bash
+$ jq -r '.network.boot_nodes' ~/.near/config.json
+```
+
+The command should print a comma-separated list of boot nodes. If it prints an empty line, the node has no peers to sync from. Add boot nodes as described in [Epoch Sync](/intro/node-epoch-sync#testnet).
+
+When the node starts with an empty `data` folder, it syncs with the network using [Epoch Sync](../intro/epoch_sync.md). Epoch sync downloads only a small set of past block headers instead of all of them. It runs automatically and needs no other config change.
 
 ### 5. Run the node {#5-run-the-node}
 To start your node simply run the following command:
@@ -145,20 +169,22 @@ Next, checkout the release branch you need (recommended) if you will not be usin
 
 For more information on choosing between `master` and latest release branch [ [click here](/validator/compile-and-run-a-node#choosing-your-nearcore-version) ].
 
-The following commands check out the latest stable release:
+The following command reads the latest stable release:
 
 ```bash
 $ NEAR_RELEASE_VERSION=$(curl -s https://api.github.com/repos/near/nearcore/releases/latest | grep '"tag_name"' | cut -d '"' -f 4)
-$ git checkout "tags/${NEAR_RELEASE_VERSION:?}" -b mynode
+$ echo "${NEAR_RELEASE_VERSION:?}"
 ```
 
 ### 2. Compile `nearcore` binary {#2-compile-nearcore-binary-1}
 
-In the `nearcore` folder run the following commands:
+In the `nearcore` folder, check out that version and build it:
 
 ```bash
-$ make release
+$ git checkout "tags/${NEAR_RELEASE_VERSION:?}" && make release
 ```
+
+The build runs only if the checkout succeeds. Otherwise `make` would build the current branch, which is `master` after a fresh clone.
 
 This will start the compilation process. It will take some time
 depending on your machine power (e.g. i9 8-core CPU, 32 GB RAM, SSD
@@ -171,14 +197,28 @@ The binary path is `target/release/neard`
 
 ### 3. Initialize working directory {#3-initialize-working-directory-1}
 
-The NEAR node requires a working directory with a couple of configuration files. Generate the initial required working directory by running:
+The NEAR node requires a working directory with a couple of configuration files. It also needs boot nodes to find its first peers. The reference RPC `config.json` has no boot nodes, so you need to pass them to `neard init`. The following command asks a mainnet RPC node for the validators it is connected to. It needs `jq`. You can use any RPC provider for this command:
 
 ```bash
-$ ./target/release/neard --home ~/.near init --chain-id mainnet --download-genesis --download-config rpc
+$ BOOT_NODES=$(curl -s -X POST https://rpc.mainnet.near.org -H "Content-Type: application/json" -d '{
+        "jsonrpc": "2.0",
+        "method": "network_info",
+        "params": [],
+        "id": "dontcare"
+      }' | jq -r '.result.active_peers as $list1 | .result.known_producers as $list2 |
+          $list1[] as $active_peer | $list2[] |
+          select(.peer_id == $active_peer.id) |
+          "\(.peer_id)@\($active_peer.addr)"' | paste -sd "," -)
+$ echo "${BOOT_NODES:?}"
 ```
 
-> You can specify trusted boot nodes that you'd like to use by passing the `--boot-nodes` flag during `init`.
-To find a set of active boot nodes, follow these instructions for [mainnet](/intro/node-epoch-sync#mainnet).
+Then generate the working directory with the reference RPC config and the boot nodes:
+
+```bash
+$ ./target/release/neard --home ~/.near init --chain-id mainnet --download-genesis --download-config rpc --boot-nodes "${BOOT_NODES:?}"
+```
+
+> `neard init` does not change an existing `config.json`. If you already ran it without `--boot-nodes`, add the boot nodes to `config.json` as described in [Epoch Sync](/intro/node-epoch-sync#mainnet).
 
 > You can skip the `--home` argument if you are fine with the default working directory in `~/.near`. If not, pass your preferred location.
 
@@ -191,7 +231,15 @@ This command will create the required directory structure by generating a `confi
 
 ### 4. Sync with the network {#4-get-data-backup-1}
 
-The node is ready to be started. When it starts with an empty `data` folder, it syncs with the network using [Epoch Sync](../intro/epoch_sync.md). Epoch sync downloads only a small set of past block headers instead of all of them. It runs automatically, and no config change is needed.
+Before you start the node, check that `network.boot_nodes` in `config.json` is not empty:
+
+```bash
+$ jq -r '.network.boot_nodes' ~/.near/config.json
+```
+
+The command should print a comma-separated list of boot nodes. If it prints an empty line, the node has no peers to sync from. Add boot nodes as described in [Epoch Sync](/intro/node-epoch-sync#mainnet).
+
+When the node starts with an empty `data` folder, it syncs with the network using [Epoch Sync](../intro/epoch_sync.md). Epoch sync downloads only a small set of past block headers instead of all of them. It runs automatically and needs no other config change.
 
 ### 5. Run the node {#5-run-the-node}
 To start your node simply run the following command:
