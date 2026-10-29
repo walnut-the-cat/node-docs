@@ -102,7 +102,7 @@ Once connected to the instance, follow [the steps listed
 above](#compiling-and-running-a-node-without-docker).
 
 ## Starting a node with epoch sync {#starting-a-node-from-backup}
-A new node syncs with [Epoch Sync](/intro/node-epoch-sync), so it does not need a data backup. It needs boot nodes to find its first peers. The following commands ask an RPC node of your network for the validators it is connected to, and pass them to `neard init`. They need `jq`:
+A new node syncs with [Epoch Sync](/intro/node-epoch-sync), so it does not need a data backup. It needs boot nodes to find its first peers. The following commands ask an RPC node of your network for the validators it is connected to. Then they pass the list to `neard init`. They need `jq`:
 
 ```bash
 BOOT_NODES=$(curl -s -X POST https://rpc.<chain-id>.near.org -H "Content-Type: application/json" -d '{
@@ -117,6 +117,14 @@ BOOT_NODES=$(curl -s -X POST https://rpc.<chain-id>.near.org -H "Content-Type: a
 echo "${BOOT_NODES:?}"
 ./neard init --chain-id <chain-id> --download-genesis --boot-nodes "${BOOT_NODES:?}"
 ```
+
+Check that `network.boot_nodes` in `config.json` is not empty:
+
+```bash
+jq -r '.network.boot_nodes' ~/.near/config.json
+```
+
+The command should print a comma-separated list of boot nodes. If it prints an empty line, the node has no peers to sync from. Add boot nodes as described in [Epoch Sync](/intro/node-epoch-sync). Running `neard init` again does not add them, because it does not change an existing `config.json`.
 
 Then start the node with an empty `data` folder:
 
