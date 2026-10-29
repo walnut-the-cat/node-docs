@@ -157,21 +157,23 @@ $ git fetch origin --tags
 
 Checkout to the branch you need if not `master` (default). Latest release is recommended. Please check the [releases page on GitHub](https://github.com/near/nearcore/releases).
 
-Testnet usually runs a newer release candidate than mainnet. An older release cannot follow the testnet protocol version. The following commands check out the version that the public testnet RPC node runs. They need `jq`:
+Testnet usually runs a newer release candidate than mainnet. An older release cannot follow the testnet protocol version. The following command reads the version that the public testnet RPC node runs. It needs `jq`:
 
 ```bash
 $ NEAR_RELEASE_VERSION=$(curl -s -X POST https://rpc.testnet.near.org -H "Content-Type: application/json" \
     -d '{"jsonrpc":"2.0","id":"dontcare","method":"status","params":[]}' | jq -r '.result.version.version')
-$ git checkout "tags/${NEAR_RELEASE_VERSION:?}" -b mynode
+$ echo "${NEAR_RELEASE_VERSION:?}"
 ```
 
 ### 2. Compile `nearcore` binary {#compile-nearcore-binary-1}
 
-In the `nearcore` folder run the following commands:
+In the `nearcore` folder, check out that version and build it:
 
 ```bash
-$ make neard
+$ git checkout "tags/${NEAR_RELEASE_VERSION:?}" && make neard
 ```
+
+The build runs only if the checkout succeeds. Otherwise `make` would build the current branch, which is `master` after a fresh clone.
 
 This will start the compilation process. It will take some time
 depending on your machine power (e.g. i9 8-core CPU, 32 GB RAM, SSD
@@ -390,20 +392,22 @@ release.
 
 For more information on choosing between `master` and latest release branch [ [click here](/validator/compile-and-run-a-node#choosing-your-nearcore-version) ].
 
-The following commands check out the latest stable release:
+The following command reads the latest stable release:
 
 ```bash
 $ NEAR_RELEASE_VERSION=$(curl -s https://api.github.com/repos/near/nearcore/releases/latest | grep '"tag_name"' | cut -d '"' -f 4)
-$ git checkout "tags/${NEAR_RELEASE_VERSION:?}" -b mynode
+$ echo "${NEAR_RELEASE_VERSION:?}"
 ```
 
 ### 2. Compile `nearcore` binary {#compile-nearcore-binary-2}
 
-In the `nearcore` folder run the following commands:
+In the `nearcore` folder, check out that version and build it:
 
 ```bash
-$ make neard
+$ git checkout "tags/${NEAR_RELEASE_VERSION:?}" && make neard
 ```
+
+The build runs only if the checkout succeeds. Otherwise `make` would build the current branch, which is `master` after a fresh clone.
 
 This will start the compilation process. It will take some time
 depending on your machine power (e.g. i9 8-core CPU, 32 GB RAM, SSD
