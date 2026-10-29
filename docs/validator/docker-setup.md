@@ -74,7 +74,7 @@ Before you start the node, check that `network.boot_nodes` in `config.json` is n
 jq -r '.network.boot_nodes' ~/.near/config.json
 ```
 
-The command should print a comma-separated list of boot nodes. If it prints an empty line, add boot nodes with the `jq` command on the [Epoch Sync](/intro/node-epoch-sync) page. `neard init` does not change an existing `config.json`, so running it again does not add them.
+The command should print a comma-separated list of boot nodes. If it prints an empty line, the node has no peers to sync from. Add boot nodes as described in [Epoch Sync](/intro/node-epoch-sync). Running `neard init` again does not add them, because it does not change an existing `config.json`.
 
 ## Running the Node
 

@@ -109,17 +109,17 @@ Then generate the working directory with the reference archival config and the b
 $ ./target/release/neard --home ~/.near init --chain-id testnet --download-genesis --download-config archival --boot-nodes "${BOOT_NODES:?}"
 ```
 
+> You can skip the `--home` argument if you are fine with the default working directory in `~/.near`. If not, pass your preferred location.
+
 Check that `network.boot_nodes` in `config.json` is not empty:
 
 ```bash
 $ jq -r '.network.boot_nodes' ~/.near/config.json
 ```
 
-The command should print a comma-separated list of boot nodes. If it prints an empty line, add boot nodes with the `jq` command on the [Epoch Sync](/intro/node-epoch-sync#testnet) page. `neard init` does not change an existing `config.json`, so running it again does not add them.
+The command should print a comma-separated list of boot nodes. If it prints an empty line, the node has no peers to sync from. Add boot nodes as described in [Epoch Sync](/intro/node-epoch-sync#testnet). Running `neard init` again does not add them, because it does not change an existing `config.json`.
 
-> You can skip the `--home` argument if you are fine with the default working directory in `~/.near`. If not, pass your preferred location.
-
-This command will create the required directory structure and will generate `config.json`, `node_key.json`, and `genesis.json` for `testnet` network.
+`neard init` creates the required directory structure and generates `config.json`, `node_key.json`, and `genesis.json` for the `testnet` network.
 - `config.json` - Configuration parameters which are responsive for how the node will work. This file should contain the following fields critical for archival nodes:
   - `"archive": true` - to save the data for all blocks to storage.
   - `"tracked_shards": [0]` - to track all shards.
@@ -217,17 +217,17 @@ Then generate the working directory with the reference archival config and the b
 $ ./target/release/neard --home ~/.near init --chain-id mainnet --download-genesis --download-config archival --boot-nodes "${BOOT_NODES:?}"
 ```
 
+> You can skip the `--home` argument if you are fine with the default working directory in `~/.near`. If not, pass your preferred location.
+
 Check that `network.boot_nodes` in `config.json` is not empty:
 
 ```bash
 $ jq -r '.network.boot_nodes' ~/.near/config.json
 ```
 
-The command should print a comma-separated list of boot nodes. If it prints an empty line, add boot nodes with the `jq` command on the [Epoch Sync](/intro/node-epoch-sync#mainnet) page. `neard init` does not change an existing `config.json`, so running it again does not add them.
+The command should print a comma-separated list of boot nodes. If it prints an empty line, the node has no peers to sync from. Add boot nodes as described in [Epoch Sync](/intro/node-epoch-sync#mainnet). Running `neard init` again does not add them, because it does not change an existing `config.json`.
 
-> You can skip the `--home` argument if you are fine with the default working directory in `~/.near`. If not, pass your preferred location.
-
-This command will create the required directory structure by generating a `config.json`, `node_key.json`, and downloads a `genesis.json` for `mainnet`.
+`neard init` creates the required directory structure. It generates `config.json` and `node_key.json`, and downloads `genesis.json` for `mainnet`.
 - `config.json` - Configuration parameters which are responsive for how the node will work. This file should contain the following fields critical for archival nodes:
   - `"archive": true` - to save the data for all blocks to storage.
   - `"tracked_shards": [0]` - to track all shards.

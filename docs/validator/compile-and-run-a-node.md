@@ -194,7 +194,7 @@ $ BOOT_NODES=$(curl -s -X POST https://rpc.testnet.near.org -H "Content-Type: ap
 $ echo "${BOOT_NODES:?}"
 ```
 
-Then generate the working directory with the boot nodes:
+Then generate the working directory with the reference validator config and the boot nodes:
 
 ```bash
 $ ./target/release/neard --home ~/.near init --chain-id testnet --download-genesis --download-config validator --boot-nodes "${BOOT_NODES:?}"
@@ -216,7 +216,7 @@ This command will create the required directory structure and will generate `con
 We have created basic configuration files for different purposes.
 The default file works well for any use case on localnet.
 
-For testnet, the default file should be replaced with one of the following, depending on your requirements:
+For testnet, step 3 already downloaded the validator config. To run another type of node, replace `config.json` with one of the following files. A new file has no boot nodes, so add them again before you start the node:
 
 1. [Regular RPC Node](https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deploy/testnet/rpc/config.json) stores recent info for all the shards, and can serve RPC queries for the last N epochs (N=5 by default).
 2. [Archival RPC Node](https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deploy/testnet/archival/config.json) stores all the info starting for genesis, can serve RPC queries for the entire history. Requires significant storage.
@@ -230,7 +230,7 @@ Before you start the node, check that `network.boot_nodes` in `config.json` is n
 $ jq -r '.network.boot_nodes' ~/.near/config.json
 ```
 
-The command should print a comma-separated list of boot nodes. If it prints an empty line, add boot nodes with the `jq` command on the [Epoch Sync](/intro/node-epoch-sync#testnet) page. `neard init` does not change an existing `config.json`, so running it again does not add them.
+The command should print a comma-separated list of boot nodes. If it prints an empty line, the node has no peers to sync from. Add boot nodes as described in [Epoch Sync](/intro/node-epoch-sync#testnet). Running `neard init` again does not add them, because it does not change an existing `config.json`.
 
 The node is ready to be started. However, you must first sync up with the network. This means your node needs to download all the headers and blocks that other nodes in the network already have.
 
@@ -446,7 +446,7 @@ $ BOOT_NODES=$(curl -s -X POST https://rpc.mainnet.near.org -H "Content-Type: ap
 $ echo "${BOOT_NODES:?}"
 ```
 
-Then generate the working directory with the boot nodes:
+Then generate the working directory with the reference validator config and the boot nodes:
 
 ```bash
 $ ./target/release/neard --home ~/.near init --chain-id mainnet --download-config validator --boot-nodes "${BOOT_NODES:?}"
@@ -465,7 +465,7 @@ This command will create the required directory structure by generating a `confi
 We have created basic configuration files for different purposes.
 The default file works well for any use case on localnet.
 
-For mainnet, the default file should be replaced with one of the following, depending on your requirements:
+For mainnet, step 3 already downloaded the validator config. To run another type of node, replace `config.json` with one of the following files. A new file has no boot nodes, so add them again before you start the node:
 
 1. [Regular RPC Node](https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deploy/mainnet/rpc/config.json) stores recent info for all the shards, and can serve RPC queries for the last N epochs (N=5 by default).
 2. [Archival RPC Node](https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deploy/mainnet/archival/config.json) stores all the info starting for genesis, can serve RPC queries for the entire history. Requires significant storage.
@@ -479,7 +479,7 @@ Before you start the node, check that `network.boot_nodes` in `config.json` is n
 $ jq -r '.network.boot_nodes' ~/.near/config.json
 ```
 
-The command should print a comma-separated list of boot nodes. If it prints an empty line, add boot nodes with the `jq` command on the [Epoch Sync](/intro/node-epoch-sync#mainnet) page. `neard init` does not change an existing `config.json`, so running it again does not add them.
+The command should print a comma-separated list of boot nodes. If it prints an empty line, the node has no peers to sync from. Add boot nodes as described in [Epoch Sync](/intro/node-epoch-sync#mainnet). Running `neard init` again does not add them, because it does not change an existing `config.json`.
 
 The node is ready to be started. However, you must first sync up with the network. This means your node needs to download all the headers and blocks that other nodes in the network already have.
 

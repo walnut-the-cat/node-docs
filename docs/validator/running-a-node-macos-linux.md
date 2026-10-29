@@ -68,11 +68,11 @@ If your machine is behind a firewall or NAT, make sure port 24567 is
 open and forwarded to the machine where the node is going to be
 running.
 
-Finally, initialize the working directory and start the node. The
+Finally, initialize the working directory and start the node.  The
 node needs boot nodes to find its first peers.  The reference RPC
-`config.json` has no boot nodes, so the following commands ask a
-testnet RPC node for the validators it is connected to, and pass them
-to `neard init`:
+`config.json` has no boot nodes.  The following commands ask a testnet
+RPC node for the validators it is connected to.  Then they pass the
+list to `neard init`:
 
 ```bash
 BOOT_NODES=$(curl -s -X POST https://rpc.testnet.near.org -H "Content-Type: application/json" -d '{
@@ -94,7 +94,7 @@ Check that `network.boot_nodes` in `config.json` is not empty:
 jq -r '.network.boot_nodes' ~/.near/config.json
 ```
 
-The command should print a comma-separated list of boot nodes. If it prints an empty line, add boot nodes with the `jq` command on the [Epoch Sync](/intro/node-epoch-sync#testnet) page. `neard init` does not change an existing `config.json`, so running it again does not add them.
+The command should print a comma-separated list of boot nodes. If it prints an empty line, the node has no peers to sync from. Add boot nodes as described in [Epoch Sync](/intro/node-epoch-sync#testnet). Running `neard init` again does not add them, because it does not change an existing `config.json`.
 
 Then start the node:
 

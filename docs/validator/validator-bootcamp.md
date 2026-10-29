@@ -194,7 +194,7 @@ sudo apt update && sudo apt upgrade -y
 
 #### Install developer tools:
 ```
-sudo apt install -y git binutils-dev libcurl4-openssl-dev zlib1g-dev libdw-dev libiberty-dev cmake gcc g++ python docker.io protobuf-compiler libssl-dev pkg-config clang llvm cargo
+sudo apt install -y git binutils-dev libcurl4-openssl-dev zlib1g-dev libdw-dev libiberty-dev cmake gcc g++ python docker.io protobuf-compiler libssl-dev pkg-config clang llvm cargo jq
 ```
 ####  Install Python pip:
 
@@ -278,7 +278,7 @@ wget -O ~/.near/config.json https://s3-us-west-1.amazonaws.com/build.nearprotoco
 
 ### Add boot nodes
 
-The node needs boot nodes to find its first peers. The reference validator `config.json` has no boot nodes. The following commands ask an RPC node for the validators it is connected to, and write them to `config.json`. They need `jq`. Replace `<network>` with `testnet` or `mainnet`:
+The node needs boot nodes to find its first peers. The reference validator `config.json` has no boot nodes. The following commands ask an RPC node for the validators it is connected to. Then they write the list to `config.json`. They need `jq`. Replace `<network>` with `testnet` or `mainnet`:
 
 ```
 BOOT_NODES=$(curl -s -X POST https://rpc.<network>.near.org -H "Content-Type: application/json" -d '{
@@ -382,12 +382,21 @@ wget -c https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deplo
 wget -c https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deploy/testnet/genesis.json
 ```
 
-* Download the latest snapshot:
+* Add boot nodes to the config. The node needs boot nodes to find its first peers. The reference validator `config.json` has none. The `BOOT_NODES` command asks a testnet RPC node for the validators it is connected to. It needs `jq`. The node syncs with [Epoch Sync](/intro/node-epoch-sync), so it does not need a snapshot.
 
 ```
-mkdir ~/.near/testnet/data
 cd ~/.near/testnet
-wget -c https://near-protocol-public.s3.amazonaws.com/backups/testnet/rpc/data.tar -O - | tar -xf -
+BOOT_NODES=$(curl -s -X POST https://rpc.testnet.near.org -H "Content-Type: application/json" -d '{
+        "jsonrpc": "2.0",
+        "method": "network_info",
+        "params": [],
+        "id": "dontcare"
+      }' | jq -r '.result.active_peers as $list1 | .result.known_producers as $list2 |
+          $list1[] as $active_peer | $list2[] |
+          select(.peer_id == $active_peer.id) |
+          "\(.peer_id)@\($active_peer.addr)"' | paste -sd "," -)
+echo "${BOOT_NODES:?}"
+jq --arg boot_nodes "${BOOT_NODES:?}" '.network.boot_nodes = $boot_nodes' config.json > config.tmp && mv config.tmp config.json
 ```
 
 * Launch this command so set the Near testnet Environment:
@@ -499,7 +508,7 @@ sudo apt update && sudo apt upgrade -y
 ```
 * Install Python
 ```
-sudo apt install python3 git curl
+sudo apt install python3 git curl jq
 ```
 * Install Building env
 ```
@@ -580,7 +589,7 @@ near login
 ![img](/images/5.png)
 
 #### Step 4 – Initialize & Start the Node
-* Download the latest genesis and config files, and add boot nodes to the config. The node needs boot nodes to find its first peers, and the reference validator `config.json` has none. The `BOOT_NODES` command asks a mainnet RPC node for the validators it is connected to. It needs `jq`:
+* Download the latest genesis and config files, and add boot nodes to the config. The node needs boot nodes to find its first peers. The reference validator `config.json` has none. The `BOOT_NODES` command asks a mainnet RPC node for the validators it is connected to. It needs `jq`:
 ```
 mkdir ~/.near
 cd ~/.near
@@ -1465,7 +1474,7 @@ NEAR Requires a 1 second block time and HDD disks are just not fast enough. SDD 
 NEAR requires a 1 second block time, so any latency from your internet provider can cause you to miss blocks.
 
 #### Inability to gain enough peers for consensus
-If you are unable to gain any peers a restart can help. In some rare cases the boot_nodes in config.json can be empty.
+If you are unable to gain any peers a restart can help. The node also has no peers to start from when `network.boot_nodes` in `config.json` is empty. The reference `config.json` files have no boot nodes.
 
 Logs like that :
 ```
@@ -1473,9 +1482,11 @@ INFO stats: #42376888 Waiting for peers 0/0/40 peers ⬇ 0 B/s ⬆ 0 B/s 0.00 bp
 ```
 
 **Resolution**
-Download the latest config.json file and restart:
-- For Testnet: `https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deploy/testnet/validator/config.json`
-- For Mainnet: `https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deploy/mainnet/validator/config.json`
+Check the boot nodes in the node's `config.json`. With the default home directory, run:
+```
+jq -r '.network.boot_nodes' ~/.near/config.json
+```
+If it prints an empty line, add boot nodes as described in [Add boot nodes](#add-boot-nodes), and restart the node. Downloading the reference `config.json` again does not help, because it has no boot nodes.
 
 
 ## LESSON 7 - NODE FAILOVER
