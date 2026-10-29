@@ -578,13 +578,15 @@ wget -c https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deplo
 
 * Initialize NEAR:
 ```
-target/release/neard init --chain-id="mainnet" --account-id=<staking pool id>
+target/release/neard init --chain-id="mainnet" --account-id=<pool_id>.poolv1.near
 ```
 ##### Check `validator_key.json`
-`neard init --account-id=<staking pool id>` in the previous step created `~/.near/validator_key.json` with a new key. This is the file that neard reads. Keep this key, and show its public key:
+`neard init --account-id=<pool_id>.poolv1.near` in the previous step created `~/.near/validator_key.json` with a new key. This is the file that neard reads. Keep this key, and show its public key:
 ```
 grep public_key ~/.near/validator_key.json
 ```
+> Note: The `account_id` in this file must be your full staking pool account, such as `xx.poolv1.near`. `neard init` writes the value of `--account-id` there. If you passed only the pool name, edit `account_id` before you start the node.
+
 > Note: Use this `public_key` as the `stake_public_key` when you create the staking pool. If the two keys differ, the node stops with a "validator key mismatch" error once the pool is in the validator set.
 
 ##### Optional: use a different key
