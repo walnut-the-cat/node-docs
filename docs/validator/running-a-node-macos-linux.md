@@ -102,10 +102,25 @@ Once connected to the instance, follow [the steps listed
 above](#compiling-and-running-a-node-without-docker).
 
 ## Starting a node with epoch sync {#starting-a-node-from-backup}
-A new node syncs with [Epoch Sync](/intro/node-epoch-sync), so it does not need a data backup. Initialize the node and start it with an empty `data` folder:
+A new node syncs with [Epoch Sync](/intro/node-epoch-sync), so it does not need a data backup. It needs boot nodes to find its first peers. The following commands ask an RPC node of your network for the validators it is connected to, and pass them to `neard init`. They need `jq`:
 
 ```bash
-./neard init --chain-id <chain-id> --download-genesis
+BOOT_NODES=$(curl -s -X POST https://rpc.<chain-id>.near.org -H "Content-Type: application/json" -d '{
+        "jsonrpc": "2.0",
+        "method": "network_info",
+        "params": [],
+        "id": "dontcare"
+      }' | jq -r '.result.active_peers as $list1 | .result.known_producers as $list2 |
+          $list1[] as $active_peer | $list2[] |
+          select(.peer_id == $active_peer.id) |
+          "\(.peer_id)@\($active_peer.addr)"' | paste -sd "," -)
+echo "${BOOT_NODES:?}"
+./neard init --chain-id <chain-id> --download-genesis --boot-nodes "${BOOT_NODES:?}"
+```
+
+Then start the node with an empty `data` folder:
+
+```bash
 ./neard run
 ```
 
