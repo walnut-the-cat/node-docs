@@ -42,7 +42,20 @@ To reset a validator key:
 2. Register the new public key on chain. For a staking pool, the pool owner calls the pool's `update_staking_key` method with the new public key.
 3. Keep the old key in `validator_key.json` until the new key is active. Call the `validators` RPC method and check its `next_validators` list. When the list shows the new public key for your account, the new key becomes active when the next epoch starts. The next epoch starts near the height `epoch_start_height` + `epoch_length`. `epoch_start_height` is in the same `validators` response. `epoch_length` is in the response of the `EXPERIMENTAL_protocol_config` RPC method.
 4. Shortly before that epoch starts, stop the node and replace `validator_key.json` with the new key file.
-5. Start the node after the new epoch has started. If you start it earlier, the node compares the new key with the old registered key and stops.
+5. Start the node after the new epoch has started and the new key is active. Check this with the `validators` RPC method. Its `current_validators` list must show the new public key for your account. Your node is stopped, so send this request to any synced RPC node. If you start the node before the new key is active, the node compares the new key with the old registered key and stops.
+
+Steps 3 and 5 read two different lists of the `validators` response:
+
+| Step | List | What it shows when it has the new key |
+|---|---|---|
+| 3. Before you stop the node | `next_validators` | The new key becomes active when the next epoch starts. |
+| 5. Before you start the node | `current_validators` | The new key is active now. |
+
+For example, this command prints the key that is active for your pool in the current epoch on mainnet. Replace `<POOL_ID>` with your staking pool account. On testnet, use `https://rpc.testnet.near.org`. Replace `current_validators` with `next_validators` for the check in step 3.
+
+```bash
+curl -s -d '{"jsonrpc": "2.0", "method": "validators", "id": "dontcare", "params": [null]}' -H 'Content-Type: application/json' https://rpc.mainnet.near.org | jq -r '.result.current_validators[] | select(.account_id == "<POOL_ID>") | .public_key'
+```
 
 The node misses its blocks, chunks and endorsements while it is stopped. If the node still runs with the old key when the new epoch starts, it stops at the first block of that epoch. In that case, replace `validator_key.json` with the new key file and start the node again.
 
