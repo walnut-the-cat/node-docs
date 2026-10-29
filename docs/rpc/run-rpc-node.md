@@ -80,7 +80,7 @@ In the `nearcore` folder, check out that version and build it:
 $ git checkout "tags/${NEAR_RELEASE_VERSION:?}" && make release
 ```
 
-The build runs only if the checkout succeeds. Otherwise `make` would build the current branch, which is `master` after a fresh clone.
+The build runs only if the checkout succeeds. Without the `&&`, a failed checkout would leave `master` checked out after a fresh clone, and `make` would build it.
 
 This will start the compilation process. It will take some time
 depending on your machine power (e.g. i9 8-core CPU, 32 GB RAM, SSD
@@ -184,7 +184,7 @@ In the `nearcore` folder, check out that version and build it:
 $ git checkout "tags/${NEAR_RELEASE_VERSION:?}" && make release
 ```
 
-The build runs only if the checkout succeeds. Otherwise `make` would build the current branch, which is `master` after a fresh clone.
+The build runs only if the checkout succeeds. Without the `&&`, a failed checkout would leave `master` checked out after a fresh clone, and `make` would build it.
 
 This will start the compilation process. It will take some time
 depending on your machine power (e.g. i9 8-core CPU, 32 GB RAM, SSD
